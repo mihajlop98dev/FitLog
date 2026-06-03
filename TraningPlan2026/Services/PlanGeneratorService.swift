@@ -98,11 +98,16 @@ class PlanGeneratorService {
         let workoutNames = ["Gornji deo tela", "Donji deo tela", "Gornji + kardio", "Donji + core", "Pun telo", "Gornji deo", "Donji deo"]
         var plans: [GeneratedWorkout] = []
         
-        let shuffled = templateExercises.shuffled()
+        let exercises = templateExercises.isEmpty
+            ? ["Sklekovi", "Cucnjevi", "Zgibovi", "Iskoraci", "Plank", "Trbusnjaci", "Propadanja"]
+            : templateExercises.shuffled()
+        
+        let count = max(exercises.count, 1)
         
         for day in 1...profile.days_per_week {
-            let startIdx = ((day - 1) * 6) % shuffled.count
-            let dayExercises = Array(shuffled[startIdx..<min(startIdx + 6, shuffled.count)])
+            let startIdx = ((day - 1) * 6) % count
+            let endIdx = min(startIdx + 6, count)
+            let dayExercises = Array(exercises[startIdx..<endIdx])
             
             let exercises = dayExercises.map { name in
                 GeneratedExercise(
