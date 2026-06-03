@@ -25,7 +25,9 @@ class AuthService: ObservableObject {
                 userId = session.user.id.uuidString
             }
         } catch {
-            tryBiometricLogin()
+            if UserDefaults.standard.bool(forKey: "faceIDEnabled") {
+                tryBiometricLogin()
+            }
         }
     }
     
@@ -67,9 +69,6 @@ class AuthService: ObservableObject {
     }
     
     func tryBiometricLogin() {
-        let faceIDEnabled = UserDefaults.standard.bool(forKey: "faceIDEnabled")
-        guard faceIDEnabled else { return }
-        
         let context = LAContext()
         var error: NSError?
         
@@ -89,7 +88,8 @@ class AuthService: ObservableObject {
     private func autoSignInWithSavedCredentials() async {
         guard let credentials = loadCredentials() else { return }
         do {
-            try await supabase.auth.signIn(email: credentials.email, password: credentials.password)
+            let session = try await supabase.auth.signIn(email: credentials.email, password: credentials.password)
+            userId = session.user.id.uuidString
             isAuthenticated = true
         } catch {
             clearCredentials()

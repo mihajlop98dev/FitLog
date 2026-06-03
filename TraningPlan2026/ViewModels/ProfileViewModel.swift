@@ -22,26 +22,26 @@ class ProfileViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            struct CountResult: Codable {
-                let count: Int
+            struct Item: Codable {
+                let id: String
             }
             
-            let workouts: [CountResult] = try await supabase
+            let workouts: [Item] = try await supabase
                 .from("user_workouts")
-                .select("count", head: true)
+                .select("id")
                 .eq("user_id", value: userId)
                 .execute()
                 .value
             
-            let meals: [CountResult] = try await supabase
+            let meals: [Item] = try await supabase
                 .from("user_meals")
-                .select("count", head: true)
+                .select("id")
                 .eq("user_id", value: userId)
                 .execute()
                 .value
             
-            totalWorkouts = workouts.first?.count ?? 0
-            totalMeals = meals.first?.count ?? 0
+            totalWorkouts = workouts.count
+            totalMeals = meals.count
             streakDays = 0
             daysActive = 0
         } catch {
