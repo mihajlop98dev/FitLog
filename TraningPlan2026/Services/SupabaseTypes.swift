@@ -185,3 +185,23 @@ struct UserProfileData: Codable {
     let streak_count: Int?
     let last_activity_date: String?
 }
+
+struct UserWorkoutMetadata: Codable {
+    let id: String
+    let name: String
+    let date: Date
+    let is_completed: Bool?
+    let duration: Int?
+    let notes: String?
+}
+
+struct UserExerciseRecordData: Codable {
+    let id: String
+    let workout_id: String
+    let name: String
+    let sets: Int?
+    let reps: Int?
+    let weight: Double?
+    let duration: Int?
+    let notes: String?
+}

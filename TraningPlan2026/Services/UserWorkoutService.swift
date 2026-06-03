@@ -112,6 +112,14 @@ class UserWorkoutService {
                     .execute()
                     .value
                 
+                let userWorkoutsData: [UserWorkoutMetadata] = try await supabase
+                    .from("user_workouts")
+                    .select()
+                    .eq("user_id", value: userId)
+                    .order("date", ascending: false)
+                    .execute()
+                    .value
+                
                 var result: [Workout] = []
                 for workoutData in workoutsData {
                     let exercisesData: [ExerciseData] = try await supabase
@@ -142,6 +150,38 @@ class UserWorkoutService {
                         isCompleted: workoutData.is_completed ?? true,
                         notes: workoutData.notes,
                         duration: workoutData.duration
+                    )
+                    result.append(workout)
+                }
+                
+                for uwData in userWorkoutsData {
+                    let exercisesData: [UserExerciseRecordData] = try await supabase
+                        .from("user_exercise_records")
+                        .select()
+                        .eq("workout_id", value: uwData.id)
+                        .execute()
+                        .value
+                    
+                    let exercises = exercisesData.map { ex in
+                        Workout.Exercise(
+                            id: ex.id,
+                            name: ex.name,
+                            sets: ex.sets,
+                            reps: ex.reps,
+                            weight: ex.weight,
+                            duration: ex.duration,
+                            notes: ex.notes
+                        )
+                    }
+                    
+                    let workout = Workout(
+                        id: uwData.id,
+                        name: uwData.name,
+                        date: uwData.date,
+                        exercises: exercises,
+                        isCompleted: uwData.is_completed ?? false,
+                        notes: uwData.notes,
+                        duration: uwData.duration
                     )
                     result.append(workout)
                 }
