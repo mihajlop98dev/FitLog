@@ -12,6 +12,38 @@ Complete redesign of the first-time user experience and feature gating system. C
 
 ---
 
+## 9. Localization (Multi-language)
+
+### Approach
+- Use SwiftUI's built-in `LocalizedStringKey` + `.strings` / `.stringsdict` files
+- English is the default development language
+- Serbian (sr-RS) as secondary language
+- User selects language in Profile → Settings
+- Selection saved to `UserDefaults` with key `appLanguage`
+- On change → trigger app restart or `UIApplication.shared.openSettings()` with instruction to restart
+
+### Files to Create
+- `Localizable.xcstrings` (or `en.lproj/Localizable.strings` + `sr.lproj/Localizable.strings`)
+- All user-facing strings extracted from views
+
+### Strings Coverage
+- Onboarding (all 8 screens)
+- Auth (login/register labels, errors)
+- Dashboard (stat cards, progress text)
+- Workouts list
+- Meals sections (if has_nutrition)
+- Profile screen
+- Coach chat
+- Error messages (from ViewModels)
+- Notifications (daily check-in, weekly recap)
+
+### Serbian Notes
+- Uses Latinica script (not Cyrillic) for consistency with existing codebase
+- AI-generated content (plan, chat) should match user's language preference
+- `Locale(identifier: "sr_RS")` used for date formatting
+
+---
+
 ## 1. Onboarding Flow
 
 ### Screens
