@@ -104,13 +104,52 @@ class UserWorkoutService {
     func listenToWorkouts(completion: @escaping ([Workout]) -> Void) {
         Task {
             do {
-                let workoutsData: [WorkoutMetadata] = try await supabase
-                    .from("workouts")
-                    .select()
-                    .eq("plan_id", value: "102234")
-                    .order("workout_date", ascending: false)
-                    .execute()
-                    .value
+                let isLegacyUser = (userId == "aa783799-c0b8-4439-ada2-77f914dbf10c")
+                
+                var result: [Workout] = []
+                
+                if isLegacyUser {
+                    let workoutsData: [WorkoutMetadata] = try await supabase
+                        .from("workouts")
+                        .select()
+                        .eq("plan_id", value: "102234")
+                        .order("workout_date", ascending: false)
+                        .execute()
+                        .value
+                    
+                    for workoutData in workoutsData {
+                        let exercisesData: [ExerciseData] = try await supabase
+                            .from("exercises")
+                            .select()
+                            .eq("workout_id", value: workoutData.workout_id)
+                            .eq("plan_id", value: workoutData.plan_id)
+                            .execute()
+                            .value
+                        
+                        let exercises = exercisesData.map { exerciseData in
+                            Workout.Exercise(
+                                id: exerciseData.exercise_id,
+                                name: exerciseData.name,
+                                sets: exerciseData.sets,
+                                reps: exerciseData.reps,
+                                weight: exerciseData.weight,
+                                duration: exerciseData.duration,
+                                notes: exerciseData.notes
+                            )
+                        }
+                        
+                        let workout = Workout(
+                            id: workoutData.workout_id,
+                            name: workoutData.name,
+                            date: workoutData.workout_date ?? Date(),
+                            exercises: exercises,
+                            isCompleted: workoutData.is_completed ?? true,
+                            notes: workoutData.notes,
+                            duration: workoutData.duration
+                        )
+                        result.append(workout)
+                    }
+                }
                 
                 let userWorkoutsData: [UserWorkoutMetadata] = try await supabase
                     .from("user_workouts")
@@ -119,40 +158,6 @@ class UserWorkoutService {
                     .order("date", ascending: false)
                     .execute()
                     .value
-                
-                var result: [Workout] = []
-                for workoutData in workoutsData {
-                    let exercisesData: [ExerciseData] = try await supabase
-                        .from("exercises")
-                        .select()
-                        .eq("workout_id", value: workoutData.workout_id)
-                        .eq("plan_id", value: workoutData.plan_id)
-                        .execute()
-                        .value
-                    
-                    let exercises = exercisesData.map { exerciseData in
-                        Workout.Exercise(
-                            id: exerciseData.exercise_id,
-                            name: exerciseData.name,
-                            sets: exerciseData.sets,
-                            reps: exerciseData.reps,
-                            weight: exerciseData.weight,
-                            duration: exerciseData.duration,
-                            notes: exerciseData.notes
-                        )
-                    }
-                    
-                    let workout = Workout(
-                        id: workoutData.workout_id,
-                        name: workoutData.name,
-                        date: workoutData.workout_date ?? Date(),
-                        exercises: exercises,
-                        isCompleted: workoutData.is_completed ?? true,
-                        notes: workoutData.notes,
-                        duration: workoutData.duration
-                    )
-                    result.append(workout)
-                }
                 
                 for uwData in userWorkoutsData {
                     let exercisesData: [UserExerciseRecordData] = try await supabase
