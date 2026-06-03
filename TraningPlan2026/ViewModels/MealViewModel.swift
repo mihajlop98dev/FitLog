@@ -25,6 +25,9 @@ class MealViewModel: ObservableObject {
     private let supabaseService = SupabaseService()
     private let cacheService = CacheService.shared
     private var cancellables = Set<AnyCancellable>()
+    private var loadTask: Task<Void, Never>?
+    
+    deinit { loadTask?.cancel() }
     
     init() {
         loadNutritionTargets()
@@ -68,12 +71,14 @@ class MealViewModel: ObservableObject {
         }
         
         // Zatim učitaj iz Supabase u background-u (ažuriraj cache)
-        Task {
+        loadTask = Task { [weak self] in
+            guard let self else { return }
             errorMessage = nil
             
             do {
                 print("📥 Učitavanje meal plana iz Supabase...")
                 let plans = try await supabaseService.fetchMealPlans()
+                guard !Task.isCancelled else { return }
                 print("✅ Učitano \(plans.count) planova iz Supabase")
                 
                 if let plan = plans.first {
@@ -87,6 +92,7 @@ class MealViewModel: ObservableObject {
                 isLoading = false
                 didLoadMealPlan = true
             } catch {
+                guard !Task.isCancelled else { return }
                 errorMessage = "Failed to load meal plan: \(error.localizedDescription)"
                 isLoading = false
                 didLoadMealPlan = true

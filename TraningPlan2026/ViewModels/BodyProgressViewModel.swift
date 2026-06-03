@@ -11,9 +11,12 @@ final class BodyProgressViewModel: ObservableObject {
     
     private let storage = BodyProgressStorageService.shared
     private let supabase = SupabaseService()
+    private var loadTask: Task<Void, Never>?
+    
+    deinit { loadTask?.cancel() }
     
     init() {
-        Task { await loadEntries() }
+        loadTask = Task { await loadEntries() }
     }
     
     func loadEntries() async {

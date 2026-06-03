@@ -38,13 +38,16 @@ class WorkoutViewModel: ObservableObject {
     private let supabaseService = SupabaseService()
     private let cacheService = CacheService.shared
     private var cancellables = Set<AnyCancellable>()
+    private var loadTask: Task<Void, Never>?
     private let nextBatchStartIndexKey = "workouts.nextBatchStartIndex"
+    
+    deinit { loadTask?.cancel() }
     
     init() {
         loadWorkouts()
         loadWorkoutPlan()
         loadAvailableExercises()
-        Task { await loadPersistedPlanQueue() }
+        loadTask = Task { await loadPersistedPlanQueue() }
     }
     
     func loadWorkoutPlan() {
@@ -60,12 +63,16 @@ class WorkoutViewModel: ObservableObject {
         }
         
         // Zatim učitaj iz Supabase u background-u (ažuriraj cache)
-        Task {
+        loadTask = Task { [weak self] in
+            guard let self else { return }
             errorMessage = nil
             
             do {
                 print("📥 Učitavanje workout plana iz Supabase...")
                 let plans = try await supabaseService.fetchWorkoutPlans()
+                
+                guard !Task.isCancelled else { return }
+                
                 print("✅ Učitano \(plans.count) planova iz Supabase")
                 
                 if let plan = plans.first {
@@ -88,10 +95,11 @@ class WorkoutViewModel: ObservableObject {
                 } else {
                     print("⚠️ Nema planova u Supabase")
                 }
+                guard !Task.isCancelled else { return }
                 isLoading = false
                 didLoadWorkoutPlan = true
             } catch {
-                // Detaljnija greška za debugging
+                guard !Task.isCancelled else { return }
                 let errorDetails: String
                 if let decodingError = error as? DecodingError {
                     switch decodingError {
@@ -212,11 +220,14 @@ class WorkoutViewModel: ObservableObject {
     // Učitaj sve vežbe iz kataloga
     func loadAvailableExercises() {
         didLoadExerciseCatalog = false
-        Task {
+        loadTask = Task { [weak self] in
+            guard let self else { return }
             do {
                 print("📥 Učitavanje vežbi iz kataloga...")
                 availableExercises = try await supabaseService.fetchAllExercisesFromCatalog()
+                guard !Task.isCancelled else { return }
                 exercisesByCategory = try await supabaseService.fetchExercisesByCategory()
+                guard !Task.isCancelled else { return }
                 let rawGuides = try await supabaseService.fetchExerciseGuidesFromCatalog()
                 exerciseGuidesByName = Dictionary(uniqueKeysWithValues: rawGuides.map { key, value in
                     (normalizedExerciseName(key), value)
@@ -225,6 +236,7 @@ class WorkoutViewModel: ObservableObject {
                 print("✅ Učitano \(exercisesByCategory.count) kategorija")
                 didLoadExerciseCatalog = true
             } catch {
+                guard !Task.isCancelled else { return }
                 print("⚠️ Greška pri učitavanju vežbi iz kataloga: \(error)")
                 availableExercises = []
                 exercisesByCategory = [:]
