@@ -6,5 +6,7 @@
 	<string>Aplikaciji je potreban pristup kameri za skeniranje nutritivne deklaracije.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Aplikaciji je potreban pristup fotografijama kako biste dodali progress slike.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Koristi FaceID za brzu prijavu u aplikaciju.</string>
 </dict>
 </plist>

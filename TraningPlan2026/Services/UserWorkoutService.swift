@@ -3,9 +3,11 @@ import Supabase
 
 class UserWorkoutService {
     private let supabase: SupabaseClient
+    private let userId: String
     
-    init(supabase: SupabaseClient) {
+    init(supabase: SupabaseClient, userId: String) {
         self.supabase = supabase
+        self.userId = userId
     }
     
     func saveWorkout(_ workout: Workout) async throws {
@@ -105,6 +107,7 @@ class UserWorkoutService {
                 let workoutsData: [WorkoutMetadata] = try await supabase
                     .from("workouts")
                     .select()
+                    .eq("plan_id", value: "102234")
                     .order("workout_date", ascending: false)
                     .execute()
                     .value

@@ -10,14 +10,14 @@ class SupabaseService {
     let bodyProgress: BodyProgressService
     let trainingQueue: TrainingQueueService
     
-    init() {
+    init(userId: String = "") {
         let supabase = SupabaseConfig.shared.supabase
         self.workoutPlans = WorkoutPlanService(supabase: supabase)
         self.exerciseCatalog = ExerciseCatalogService(supabase: supabase)
-        self.userWorkouts = UserWorkoutService(supabase: supabase)
+        self.userWorkouts = UserWorkoutService(supabase: supabase, userId: userId)
         self.mealPlans = MealPlanService(supabase: supabase)
-        self.userMeals = UserMealService(supabase: supabase)
-        self.bodyProgress = BodyProgressService(supabase: supabase)
-        self.trainingQueue = TrainingQueueService(supabase: supabase)
+        self.userMeals = UserMealService(supabase: supabase, userId: userId)
+        self.bodyProgress = BodyProgressService(supabase: supabase, userId: userId)
+        self.trainingQueue = TrainingQueueService(supabase: supabase, userId: userId)
     }
 }

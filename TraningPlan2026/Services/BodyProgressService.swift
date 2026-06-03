@@ -3,16 +3,19 @@ import Supabase
 
 class BodyProgressService {
     private let supabase: SupabaseClient
+    private let userId: String
     private let bucket = "body-progress-photos"
     
-    init(supabase: SupabaseClient) {
+    init(supabase: SupabaseClient, userId: String) {
         self.supabase = supabase
+        self.userId = userId
     }
     
     func fetchEntries() async throws -> [BodyProgressData] {
         let rows: [BodyProgressData] = try await supabase
             .from("user_body_progress")
             .select()
+            .eq("user_id", value: userId)
             .order("date", ascending: false)
             .execute()
             .value

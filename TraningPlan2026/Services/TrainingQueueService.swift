@@ -3,15 +3,18 @@ import Supabase
 
 class TrainingQueueService {
     private let supabase: SupabaseClient
+    private let userId: String
     
-    init(supabase: SupabaseClient) {
+    init(supabase: SupabaseClient, userId: String) {
         self.supabase = supabase
+        self.userId = userId
     }
     
     func fetchTrainingPlanQueue() async throws -> [TrainingQueueWorkout] {
         let queueRows: [TrainingQueueWorkoutData] = try await supabase
             .from("user_training_plan_queue")
             .select()
+            .eq("user_id", value: userId)
             .order("position", ascending: true)
             .execute()
             .value

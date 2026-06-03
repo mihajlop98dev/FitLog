@@ -3,9 +3,11 @@ import Supabase
 
 class UserMealService {
     private let supabase: SupabaseClient
+    private let userId: String
     
-    init(supabase: SupabaseClient) {
+    init(supabase: SupabaseClient, userId: String) {
         self.supabase = supabase
+        self.userId = userId
     }
     
     func saveMeal(_ meal: Meal) async throws {
@@ -59,6 +61,7 @@ class UserMealService {
                 let mealsData: [UserMealData] = try await supabase
                     .from("user_meals")
                     .select()
+                    .eq("user_id", value: userId)
                     .order("date", ascending: false)
                     .execute()
                     .value

@@ -17,7 +17,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		88E106282F52168400BEED72 /* Exceptions for "TraningPlan2026" folder in "TraningPlan2026" target */ = {
+		88B967962FD0BBD80022F17C /* Exceptions for "TraningPlan2026" folder in "TraningPlan2026" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -30,7 +30,7 @@
 		883856BC2F4E229C004ABBB0 /* TraningPlan2026 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				88E106282F52168400BEED72 /* Exceptions for "TraningPlan2026" folder in "TraningPlan2026" target */,
+				88B967962FD0BBD80022F17C /* Exceptions for "TraningPlan2026" folder in "TraningPlan2026" target */,
 			);
 			path = TraningPlan2026;
 			sourceTree = "<group>";
@@ -373,14 +373,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.9.0;
-			};
-		};
 		886AAF2B2F4F1F3300AC84D1 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift.git";

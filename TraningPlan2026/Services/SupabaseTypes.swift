@@ -162,3 +162,26 @@ struct BodyProgressUpsertData: Codable {
     let analysis_json: String?
     let comparison_json: String?
 }
+
+struct UserProfileData: Codable {
+    let id: String?
+    let user_id: String
+    let name: String?
+    let age: Int?
+    let gender: String?
+    let weight_kg: Double?
+    let height_cm: Double?
+    let goal: String
+    let level: String
+    let days_per_week: Int
+    let equipment: [String]
+    let injuries: [String]?
+    let has_nutrition: Bool
+    let meals_per_day: Int?
+    let allergies: String?
+    let motivation: String?
+    let trial_end_date: String
+    let feature_tier: String
+    let streak_count: Int?
+    let last_activity_date: String?
+}
