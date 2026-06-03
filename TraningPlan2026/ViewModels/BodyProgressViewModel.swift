@@ -26,7 +26,7 @@ final class BodyProgressViewModel: ObservableObject {
         }
         
         do {
-            let remote = try await supabase.fetchBodyProgressEntries()
+            let remote = try await supabase.bodyProgress.fetchEntries()
             var mapped: [BodyProgressEntry] = []
             for item in remote {
                 if let mappedItem = await mapRemoteToEntry(item) {
@@ -117,7 +117,7 @@ final class BodyProgressViewModel: ObservableObject {
         if let localPhotoFilename = entry.photoFilename,
            let localPhotoData = storage.loadPhotoData(filename: localPhotoFilename) {
             do {
-                let remotePath = try await supabase.uploadBodyProgressPhoto(data: localPhotoData, entryId: entry.id)
+                let remotePath = try await supabase.bodyProgress.uploadPhoto(data: localPhotoData, entryId: entry.id)
                 if let index = entries.firstIndex(where: { $0.id == entry.id }) {
                     entries[index].photoRemotePath = remotePath
                     storage.saveEntries(entries)
@@ -187,11 +187,11 @@ final class BodyProgressViewModel: ObservableObject {
         storage.saveEntries(entries)
         
         if let remotePath = entry.photoRemotePath {
-            await supabase.deleteBodyProgressPhoto(path: remotePath)
+            await supabase.bodyProgress.deletePhoto(path: remotePath)
         }
         
         do {
-            try await supabase.deleteBodyProgressEntry(id: entry.id)
+            try await supabase.bodyProgress.deleteEntry(id: entry.id)
         } catch {
             errorMessage = "Brisanje sa clouda nije uspelo: \(error.localizedDescription)"
         }
@@ -203,7 +203,7 @@ final class BodyProgressViewModel: ObservableObject {
             if remotePath == nil,
                let filename = entry.photoFilename,
                let localData = storage.loadPhotoData(filename: filename) {
-                if let uploadedPath = try? await supabase.uploadBodyProgressPhoto(data: localData, entryId: entry.id) {
+                if let uploadedPath = try? await supabase.bodyProgress.uploadPhoto(data: localData, entryId: entry.id) {
                     remotePath = uploadedPath
                     if let idx = entries.firstIndex(where: { $0.id == entry.id }) {
                         entries[idx].photoRemotePath = uploadedPath
@@ -238,7 +238,7 @@ final class BodyProgressViewModel: ObservableObject {
                 analysis_json: analysisJSON,
                 comparison_json: comparisonJSON(for: entry.comparison)
             )
-            try await supabase.saveBodyProgressEntry(payload)
+            try await supabase.bodyProgress.saveEntry(payload)
         } catch {
             errorMessage = "Cloud sync nije uspeo: \(error.localizedDescription)"
         }
@@ -247,7 +247,7 @@ final class BodyProgressViewModel: ObservableObject {
     private func mapRemoteToEntry(_ item: BodyProgressData) async -> BodyProgressEntry? {
         let photoFilename: String?
         if let remotePath = item.photo_path {
-            if let data = try? await supabase.downloadBodyProgressPhoto(path: remotePath) {
+            if let data = try? await supabase.bodyProgress.downloadPhoto(path: remotePath) {
                 photoFilename = storage.savePhotoData(data, entryId: item.id)
             } else if let base64 = item.photo_base64,
                       let data = Data(base64Encoded: base64) {

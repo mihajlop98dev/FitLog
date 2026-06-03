@@ -17,8 +17,8 @@ class HomeViewModel: ObservableObject {
 
     func checkPlansExist() async -> Bool {
         do {
-            let workoutPlans = try await supabaseService.fetchWorkoutPlans()
-            let mealPlans = try await supabaseService.fetchMealPlans()
+            let workoutPlans = try await supabaseService.workoutPlans.fetchWorkoutPlans()
+            let mealPlans = try await supabaseService.mealPlans.fetchMealPlans()
             return !workoutPlans.isEmpty && !mealPlans.isEmpty
         } catch {
             return false

@@ -69,7 +69,7 @@ class WorkoutViewModel: ObservableObject {
             
             do {
                 print("📥 Učitavanje workout plana iz Supabase...")
-                let plans = try await supabaseService.fetchWorkoutPlans()
+                let plans = try await supabaseService.workoutPlans.fetchWorkoutPlans()
                 
                 guard !Task.isCancelled else { return }
                 
@@ -141,7 +141,7 @@ class WorkoutViewModel: ObservableObject {
         }
         
         print("📥 Učitavanje treninga...")
-        supabaseService.listenToWorkouts { [weak self] workouts in
+        supabaseService.userWorkouts.listenToWorkouts { [weak self] workouts in
             Task { @MainActor in
                 print("✅ Učitano \(workouts.count) treninga iz workouts tabele")
                 // Svi treningi iz workouts tabele su završeni
@@ -165,7 +165,8 @@ class WorkoutViewModel: ObservableObject {
         print("💾 ViewModel: Čuvanje treninga '\(workout.name)' sa \(workout.exercises.count) vežbi")
         
         do {
-            try await supabaseService.saveWorkout(workout)
+            try await supabaseService.userWorkouts.saveWorkout(workout)
+
             print("✅ ViewModel: Trening uspešno sačuvan u Supabase")
             
             // Osveži listu treninga nakon dodavanja
@@ -186,7 +187,7 @@ class WorkoutViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            try await supabaseService.saveWorkout(workout)
+            try await supabaseService.userWorkouts.saveWorkout(workout)
             // Osveži listu treninga nakon ažuriranja
             loadWorkouts()
             isLoading = false
@@ -201,7 +202,7 @@ class WorkoutViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            try await supabaseService.deleteWorkout(workout)
+            try await supabaseService.userWorkouts.deleteWorkout(workout)
             // Osveži listu treninga nakon brisanja
             loadWorkouts()
             isLoading = false
@@ -224,11 +225,11 @@ class WorkoutViewModel: ObservableObject {
             guard let self else { return }
             do {
                 print("📥 Učitavanje vežbi iz kataloga...")
-                availableExercises = try await supabaseService.fetchAllExercisesFromCatalog()
+                availableExercises = try await supabaseService.exerciseCatalog.fetchAllExercisesFromCatalog()
                 guard !Task.isCancelled else { return }
-                exercisesByCategory = try await supabaseService.fetchExercisesByCategory()
+                exercisesByCategory = try await supabaseService.exerciseCatalog.fetchExercisesByCategory()
                 guard !Task.isCancelled else { return }
-                let rawGuides = try await supabaseService.fetchExerciseGuidesFromCatalog()
+                let rawGuides = try await supabaseService.exerciseCatalog.fetchExerciseGuidesFromCatalog()
                 exerciseGuidesByName = Dictionary(uniqueKeysWithValues: rawGuides.map { key, value in
                     (normalizedExerciseName(key), value)
                 })
@@ -249,7 +250,7 @@ class WorkoutViewModel: ObservableObject {
     // Dodaj novu vežbu u katalog
     func addExerciseToCatalog(name: String) async {
         do {
-            try await supabaseService.addExerciseToCatalog(name: name)
+            try await supabaseService.exerciseCatalog.addExerciseToCatalog(name: name)
             // Osveži listu vežbi
             loadAvailableExercises()
         } catch {
@@ -283,8 +284,8 @@ class WorkoutViewModel: ObservableObject {
         )
         
         do {
-            try await supabaseService.saveWorkout(completedWorkout)
-            try await supabaseService.deleteTrainingPlanQueueWorkout(id: suggestedWorkout.id)
+            try await supabaseService.userWorkouts.saveWorkout(completedWorkout)
+            try await supabaseService.trainingQueue.deleteTrainingPlanQueueWorkout(id: suggestedWorkout.id)
             suggestedPlanWorkouts.removeAll { $0.id == suggestedWorkout.id }
             workouts.insert(completedWorkout, at: 0)
             completedWorkouts = workouts.filter { $0.isCompleted }
@@ -327,7 +328,7 @@ class WorkoutViewModel: ObservableObject {
         let sourceWorkouts = orderedSourceWorkoutsStartingFromDay100()
         guard !sourceWorkouts.isEmpty else { return [] }
         
-        let remoteStartIndex = (try? await supabaseService.fetchTrainingPlanProgressIndex())
+        let remoteStartIndex = (try? await supabaseService.trainingQueue.fetchTrainingPlanProgressIndex())
         let startIndex = (remoteStartIndex ?? nextBatchStartIndex()) % sourceWorkouts.count
         let selected = (0..<batchSize).map { offset in
             sourceWorkouts[(startIndex + offset) % sourceWorkouts.count]
@@ -356,8 +357,8 @@ class WorkoutViewModel: ObservableObject {
                     exercises: workout.exercises
                 )
             }
-            try await supabaseService.replaceTrainingPlanQueue(with: rows)
-            try await supabaseService.saveTrainingPlanProgressIndex(nextIndex)
+            try await supabaseService.trainingQueue.replaceTrainingPlanQueue(with: rows)
+            try await supabaseService.trainingQueue.saveTrainingPlanProgressIndex(nextIndex)
         } catch {
             errorMessage = "Greška pri čuvanju plana treninga: \(error.localizedDescription)"
         }
@@ -421,7 +422,7 @@ class WorkoutViewModel: ObservableObject {
     
     private func loadPersistedPlanQueue() async {
         do {
-            let queueRows = try await supabaseService.fetchTrainingPlanQueue()
+            let queueRows = try await supabaseService.trainingQueue.fetchTrainingPlanQueue()
             suggestedPlanWorkouts = queueRows
                 .sorted { $0.position < $1.position }
                 .map { row in
@@ -469,7 +470,7 @@ class WorkoutViewModel: ObservableObject {
         }
         
         do {
-            try await supabaseService.replaceTrainingPlanQueue(with: rows)
+            try await supabaseService.trainingQueue.replaceTrainingPlanQueue(with: rows)
         } catch {
             print("⚠️ Greška pri ažuriranju imena queue treninga: \(error)")
         }

@@ -48,7 +48,7 @@ class MealViewModel: ObservableObject {
             isLoading = true
         }
         
-        supabaseService.listenToMeals { [weak self] meals in
+        supabaseService.userMeals.listenToMeals { [weak self] meals in
             Task { @MainActor in
                 self?.meals = meals
                 self?.cacheService.saveMeals(meals)
@@ -77,7 +77,7 @@ class MealViewModel: ObservableObject {
             
             do {
                 print("📥 Učitavanje meal plana iz Supabase...")
-                let plans = try await supabaseService.fetchMealPlans()
+                let plans = try await supabaseService.mealPlans.fetchMealPlans()
                 guard !Task.isCancelled else { return }
                 print("✅ Učitano \(plans.count) planova iz Supabase")
                 
@@ -106,7 +106,7 @@ class MealViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            try await supabaseService.saveMeal(meal)
+            try await supabaseService.userMeals.saveMeal(meal)
             loadMeals()
             loadMealPlan()
             isLoading = false
@@ -121,7 +121,7 @@ class MealViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            try await supabaseService.saveMeal(meal)
+            try await supabaseService.userMeals.saveMeal(meal)
             loadMeals()
             loadMealPlan()
             isLoading = false
@@ -136,7 +136,7 @@ class MealViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            try await supabaseService.deleteMeal(meal)
+            try await supabaseService.userMeals.deleteMeal(meal)
             loadMeals()
             loadMealPlan()
             isLoading = false

@@ -185,7 +185,7 @@ class WorkoutPlanDetailViewModel: ObservableObject {
         
         do {
             print("📥 Učitavanje vežbi za trening \(workoutItem.id)...")
-                exercises = try await supabaseService.fetchExercisesForWorkout(
+                exercises = try await supabaseService.workoutPlans.fetchExercisesForWorkout(
                 planId: planId,
                 workoutId: workoutItem.id
             )
