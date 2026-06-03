@@ -182,6 +182,12 @@ struct WorkoutsView: View {
             .sheet(isPresented: $showingCalendar) {
                 WorkoutCalendarView(workouts: viewModel.workouts.filter { $0.isCompleted })
             }
+            .alert("Greška", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Text(viewModel.errorMessage ?? "")
+            }
             .alert("Greška", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.errorMessage = nil

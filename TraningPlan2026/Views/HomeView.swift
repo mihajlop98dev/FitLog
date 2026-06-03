@@ -87,6 +87,12 @@ struct HomeView: View {
             evaluateCoachInactivityPrompt()
         }
         .preferredColorScheme(.dark)
+        .alert("Greška", isPresented: Binding(
+            get: { workoutViewModel.errorMessage != nil || mealViewModel.errorMessage != nil || progressViewModel.errorMessage != nil },
+            set: { if !$0 { workoutViewModel.errorMessage = nil; mealViewModel.errorMessage = nil; progressViewModel.errorMessage = nil } }
+        )) {
+            Text(workoutViewModel.errorMessage ?? mealViewModel.errorMessage ?? progressViewModel.errorMessage ?? "")
+        }
     }
     
     private func waitForInitialData() async {

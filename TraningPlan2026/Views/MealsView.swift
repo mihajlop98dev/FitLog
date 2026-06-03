@@ -174,14 +174,11 @@ struct MealsView: View {
             .sheet(isPresented: $showingNutritionProfile) {
                 NutritionProfileView(viewModel: viewModel)
             }
-            .alert("Greška", isPresented: .constant(viewModel.errorMessage != nil)) {
-                Button("OK") {
-                    viewModel.errorMessage = nil
-                }
-            } message: {
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                }
+            .alert("Greška", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Text(viewModel.errorMessage ?? "")
             }
             .animation(.easeInOut(duration: 0.25), value: viewModel.meals.count)
         }

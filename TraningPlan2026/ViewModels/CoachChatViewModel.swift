@@ -5,6 +5,7 @@ import Combine
 final class CoachChatViewModel: ObservableObject {
     @Published var messages: [CoachChatMessage] = []
     @Published var isSending = false
+    @Published var errorMessage: String?
     
     private let messagesKey = "coach.chat.messages"
     private let lastInactivityPromptKey = "coach.chat.lastInactivityPromptDate"

@@ -53,6 +53,12 @@ struct CoachChatView: View {
             }
             .navigationTitle("Trener Chat")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Greška", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
+                Text(viewModel.errorMessage ?? "")
+            }
             .onAppear {
                 viewModel.evaluateInactivityAndPromptIfNeeded(
                     workouts: workouts,
