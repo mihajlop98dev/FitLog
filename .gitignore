@@ -46,3 +46,6 @@ TraningPlan2026/GoogleService-Info.plist
 # Auto-generated SQL schemas (temp files za Supabase setup)
 scripts/*_schema.sql
 scripts/*_schema_*.sql
+
+# Brainstorm visual companion temp files
+.superpowers/
