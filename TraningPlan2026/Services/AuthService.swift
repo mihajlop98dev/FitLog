@@ -59,14 +59,17 @@ class AuthService: ObservableObject {
     func signOut() async {
         do {
             try await supabase.auth.signOut()
-            clearCredentials()
             isAuthenticated = false
+            userId = nil
         } catch {
             errorMessage = error.localizedDescription
         }
     }
     
     func tryBiometricLogin() {
+        let faceIDEnabled = UserDefaults.standard.bool(forKey: "faceIDEnabled")
+        guard faceIDEnabled else { return }
+        
         let context = LAContext()
         var error: NSError?
         

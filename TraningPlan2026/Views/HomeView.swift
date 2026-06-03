@@ -69,13 +69,14 @@ struct HomeView: View {
     
     @ViewBuilder
     private var mainContent: some View {
-        ZStack {
+        VStack(spacing: 0) {
             if shouldShowStartupOverlay {
                 AppStartupLoadingView()
             } else {
-                AppDesign.background.ignoresSafeArea()
-                
-                Group {
+                ZStack {
+                    AppDesign.background.ignoresSafeArea()
+                    
+                    Group {
                     if selectedTab == 0 {
                         HomeDashboardView(
                             workoutViewModel: workoutViewModel,
@@ -85,39 +86,32 @@ struct HomeView: View {
                         )
                     } else if selectedTab == 1 {
                         WorkoutsView(viewModel: workoutViewModel)
-                        } else if selectedTab == 2 {
-                            if featureGate.hasNutrition {
-                                MealsView(viewModel: mealViewModel)
-                            } else {
-                                VStack {
-                                    Spacer()
-                                    Image(systemName: "lock.fill")
-                                        .font(.system(size: 42))
-                                        .foregroundStyle(AppDesign.textSecondary)
-                                    Text("Ishrana nije aktivirana")
-                                        .font(.headline)
-                                        .foregroundStyle(AppDesign.textPrimary)
-                                    Text("Nadogradi u profilu")
-                                        .font(.subheadline)
-                                        .foregroundStyle(AppDesign.textSecondary)
-                                    Spacer()
-                                }
-                            }
-                        } else if selectedTab == 3 {
+                    } else if selectedTab == 2 {
+                        if featureGate.hasNutrition {
+                            MealsView(viewModel: mealViewModel)
+                        } else {
+                            BodyProgressView(viewModel: progressViewModel)
+                        }
+                    } else if selectedTab == 3 {
+                        if featureGate.hasNutrition {
                             BodyProgressView(viewModel: progressViewModel)
                         } else {
                             ProfileView(authService: authService, featureGate: featureGate)
                         }
+                    } else {
+                        ProfileView(authService: authService, featureGate: featureGate)
                     }
-                    
-                    CustomBottomBar(selectedTab: $selectedTab, hasNutrition: featureGate.hasNutrition)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 8)
-                        .padding(.bottom, 10)
-                        .background(Color.clear)
                 }
             }
+            } // ZStack
+            
+            CustomBottomBar(selectedTab: $selectedTab, hasNutrition: featureGate.hasNutrition)
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+                .padding(.bottom, 10)
+                .background(Color.clear)
         }
+    }
     
     private func waitForInitialData() async {
         let start = Date()

@@ -50,6 +50,13 @@
             ReferencedContainer = "container:TraningPlan2026.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "DEEPSEEK_API_KEY"
+            value = "sk-e2a64bbfca964651b18d0d60438b0737"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
