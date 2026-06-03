@@ -1,0 +1,44 @@
+# Service Account Keys (Firebase) - NIKADA NE COMMIT-UJTE!
+service-account.json
+*-service-account.json
+serviceAccountKey.json
+*service-account*.json
+
+# JSON files generated from PDFs (opciono - uklonite ako želite da ih commit-ujete)
+# program-*.json
+# meal-plan-*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+scripts/venv/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcuserstate
+*.xcuserdatad
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/
+
+# Build
+build/
+DerivedData/
+
+# Local app secrets (never commit)
+TraningPlan2026/Config/Secrets.xcconfig
+
+# Firebase config (never commit)
+TraningPlan2026/GoogleService-Info.plist
