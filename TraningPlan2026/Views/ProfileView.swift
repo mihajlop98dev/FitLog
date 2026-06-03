@@ -61,10 +61,11 @@ struct ProfileView: View {
                 .foregroundStyle(AppDesign.textSecondary)
             
             HStack(spacing: 4) {
+                let isActive = featureGate.isPro || featureGate.isTrialValid
                 Circle()
-                    .fill(featureGate.isTrialValid ? Color.green : Color.red)
+                    .fill(isActive ? Color.green : Color.red)
                     .frame(width: 8, height: 8)
-                Text(featureGate.isTrialValid ? "Aktivna proba" : "Probni period istekao")
+                Text(isActive ? "Aktivno" : "Probni period istekao")
                     .font(.caption)
                     .foregroundStyle(AppDesign.textSecondary)
             }

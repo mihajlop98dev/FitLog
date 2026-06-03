@@ -16,6 +16,7 @@ class FeatureGateService: ObservableObject {
     var featureTier: String { profile?.feature_tier ?? "free" }
     
     var isTrialValid: Bool {
+        guard !isPro else { return true }
         guard let trialEndStr = profile?.trial_end_date else { return false }
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
@@ -24,7 +25,7 @@ class FeatureGateService: ObservableObject {
     }
     
     var canGenerateWorkouts: Bool {
-        isTrialValid || isPro
+        isPro || isTrialValid
     }
     
     func loadProfile(userId: String) async {
