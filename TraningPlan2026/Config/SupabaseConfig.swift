@@ -14,8 +14,8 @@ class SupabaseConfig {
     let supabase: SupabaseClient
     
     private init() {
-        let url = URL(string: "https://fduykeeoygffgxkvwmyl.supabase.co")!
-        let key = "sb_publishable_najmruv4yCXU1Qp-tiyE4A_WYPMWxo5"
+        let url = URL(string: "https://bypxfobpzzmokkejxlxd.supabase.co")!
+        let key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5cHhmb2Jwenptb2trZWp4bHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MDIwMzIsImV4cCI6MjA5NjA3ODAzMn0.NZWhMAXPRYp6WjVgYF_WfrmXSYemjpJqVvioDgaemD4"
         
         let options = SupabaseClientOptions(
             auth: .init(

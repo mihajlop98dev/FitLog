@@ -42,3 +42,7 @@ TraningPlan2026/Config/Secrets.xcconfig
 
 # Firebase config (never commit)
 TraningPlan2026/GoogleService-Info.plist
+
+# Auto-generated SQL schemas (temp files za Supabase setup)
+scripts/*_schema.sql
+scripts/*_schema_*.sql
