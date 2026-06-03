@@ -17,7 +17,6 @@ struct HomeView: View {
     @StateObject private var coachChatViewModel = CoachChatViewModel()
     @State private var selectedTab = 0
     @State private var isBootstrapping = true
-    @State private var showingSignOutAlert = false
     
     private var shouldShowStartupOverlay: Bool {
         isBootstrapping &&
@@ -34,16 +33,6 @@ struct HomeView: View {
         .task { await waitForInitialData() }
         .task { await refreshNotifications() }
         .task { evaluateCoachInactivityPrompt() }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingSignOutAlert = true
-                } label: {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .foregroundStyle(AppDesign.textSecondary)
-                }
-            }
-        }
         .onChange(of: workoutViewModel.isInitialDataReady) { _, _ in
             evaluateBootstrapState()
         }
@@ -76,14 +65,6 @@ struct HomeView: View {
         )) {
             Text(workoutViewModel.errorMessage ?? mealViewModel.errorMessage ?? progressViewModel.errorMessage ?? "")
         }
-        .alert("Odjava", isPresented: $showingSignOutAlert) {
-            Button("Odjavi se", role: .destructive) {
-                Task { await authService.signOut() }
-            }
-            Button("Otkaži", role: .cancel) {}
-        } message: {
-            Text("Da li si siguran da želiš da se odjaviš?")
-        }
     }
     
     @ViewBuilder
@@ -104,22 +85,39 @@ struct HomeView: View {
                         )
                     } else if selectedTab == 1 {
                         WorkoutsView(viewModel: workoutViewModel)
-                    } else if selectedTab == 2 {
-                        MealsView(viewModel: mealViewModel)
-                    } else {
-                        BodyProgressView(viewModel: progressViewModel)
+                        } else if selectedTab == 2 {
+                            if featureGate.hasNutrition {
+                                MealsView(viewModel: mealViewModel)
+                            } else {
+                                VStack {
+                                    Spacer()
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 42))
+                                        .foregroundStyle(AppDesign.textSecondary)
+                                    Text("Ishrana nije aktivirana")
+                                        .font(.headline)
+                                        .foregroundStyle(AppDesign.textPrimary)
+                                    Text("Nadogradi u profilu")
+                                        .font(.subheadline)
+                                        .foregroundStyle(AppDesign.textSecondary)
+                                    Spacer()
+                                }
+                            }
+                        } else if selectedTab == 3 {
+                            BodyProgressView(viewModel: progressViewModel)
+                        } else {
+                            ProfileView(authService: authService, featureGate: featureGate)
+                        }
                     }
+                    
+                    CustomBottomBar(selectedTab: $selectedTab, hasNutrition: featureGate.hasNutrition)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+                        .padding(.bottom, 10)
+                        .background(Color.clear)
                 }
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            CustomBottomBar(selectedTab: $selectedTab)
-                .padding(.horizontal, 24)
-                .padding(.top, 8)
-                .padding(.bottom, 10)
-                .background(Color.clear)
-        }
-    }
     
     private func waitForInitialData() async {
         let start = Date()
@@ -187,13 +185,17 @@ private struct AppStartupLoadingView: View {
 
 private struct CustomBottomBar: View {
     @Binding var selectedTab: Int
+    let hasNutrition: Bool
     
     var body: some View {
         HStack(spacing: 10) {
             tabButton(index: 0, title: "Home", icon: "house.fill")
             tabButton(index: 1, title: "Treninzi", icon: "figure.run")
-            tabButton(index: 2, title: "Ishrana", icon: "fork.knife")
-            tabButton(index: 3, title: "Napredak", icon: "chart.line.uptrend.xyaxis")
+            if hasNutrition {
+                tabButton(index: 2, title: "Ishrana", icon: "fork.knife")
+            }
+            tabButton(index: hasNutrition ? 3 : 2, title: "Napredak", icon: "chart.line.uptrend.xyaxis")
+            tabButton(index: hasNutrition ? 4 : 3, title: "Profil", icon: "person.fill")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
