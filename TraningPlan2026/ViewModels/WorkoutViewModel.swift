@@ -143,17 +143,26 @@ class WorkoutViewModel: ObservableObject {
         print("📥 Učitavanje treninga...")
         supabaseService.userWorkouts.listenToWorkouts { [weak self] workouts in
             Task { @MainActor in
-                print("✅ Učitano \(workouts.count) treninga iz workouts tabele")
-                // Svi treningi iz workouts tabele su završeni
-                self?.workouts = workouts
-                self?.completedWorkouts = workouts // Svi su završeni
-                self?.cacheService.saveWorkouts(workouts)
-                if let self {
-                    await self.syncQueuedWorkoutNamesWithCompletedCount()
+                guard let self else { return }
+                self.workouts = workouts
+                self.completedWorkouts = workouts.filter { $0.isCompleted }
+                
+                let incomplete = workouts.filter { !$0.isCompleted }
+                if !incomplete.isEmpty {
+                    self.suggestedPlanWorkouts = incomplete.map { w in
+                        SuggestedWorkout(
+                            id: w.id,
+                            sourceWorkoutId: w.id,
+                            name: w.name,
+                            exercises: w.exercises
+                        )
+                    }
                 }
-                print("✅ \(self?.completedWorkouts.count ?? 0) završenih treninga")
-                self?.isLoading = false
-                self?.didLoadWorkouts = true
+                
+                self.cacheService.saveWorkouts(workouts)
+                await self.syncQueuedWorkoutNamesWithCompletedCount()
+                self.isLoading = false
+                self.didLoadWorkouts = true
             }
         }
     }
