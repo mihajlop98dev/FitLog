@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    let authService: AuthService
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var workoutViewModel = WorkoutViewModel()
     @StateObject private var mealViewModel = MealViewModel()
@@ -15,6 +16,7 @@ struct HomeView: View {
     @StateObject private var coachChatViewModel = CoachChatViewModel()
     @State private var selectedTab = 0
     @State private var isBootstrapping = true
+    @State private var showingSignOutAlert = false
     
     private var shouldShowStartupOverlay: Bool {
         isBootstrapping &&
@@ -25,42 +27,22 @@ struct HomeView: View {
     }
     
     var body: some View {
-        ZStack {
-            if shouldShowStartupOverlay {
-                AppStartupLoadingView()
-            } else {
-                ZStack {
-                    AppDesign.background.ignoresSafeArea()
-                    
-                    Group {
-                        if selectedTab == 0 {
-                            HomeDashboardView(
-                                workoutViewModel: workoutViewModel,
-                                mealViewModel: mealViewModel,
-                                progressViewModel: progressViewModel,
-                                coachChatViewModel: coachChatViewModel
-                            )
-                        } else if selectedTab == 1 {
-                            WorkoutsView(viewModel: workoutViewModel)
-                        } else if selectedTab == 2 {
-                            MealsView(viewModel: mealViewModel)
-                        } else {
-                            BodyProgressView(viewModel: progressViewModel)
-                        }
-                    }
-                }
-                .safeAreaInset(edge: .bottom) {
-                    CustomBottomBar(selectedTab: $selectedTab)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 8)
-                        .padding(.bottom, 10)
-                        .background(Color.clear)
-                }
-            }
+        NavigationStack {
+            mainContent
         }
         .task { await waitForInitialData() }
         .task { await refreshNotifications() }
         .task { evaluateCoachInactivityPrompt() }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingSignOutAlert = true
+                } label: {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .foregroundStyle(AppDesign.textSecondary)
+                }
+            }
+        }
         .onChange(of: workoutViewModel.isInitialDataReady) { _, _ in
             evaluateBootstrapState()
         }
@@ -92,6 +74,49 @@ struct HomeView: View {
             set: { if !$0 { workoutViewModel.errorMessage = nil; mealViewModel.errorMessage = nil; progressViewModel.errorMessage = nil } }
         )) {
             Text(workoutViewModel.errorMessage ?? mealViewModel.errorMessage ?? progressViewModel.errorMessage ?? "")
+        }
+        .alert("Odjava", isPresented: $showingSignOutAlert) {
+            Button("Odjavi se", role: .destructive) {
+                Task { await authService.signOut() }
+            }
+            Button("Otkaži", role: .cancel) {}
+        } message: {
+            Text("Da li si siguran da želiš da se odjaviš?")
+        }
+    }
+    
+    @ViewBuilder
+    private var mainContent: some View {
+        ZStack {
+            if shouldShowStartupOverlay {
+                AppStartupLoadingView()
+            } else {
+                AppDesign.background.ignoresSafeArea()
+                
+                Group {
+                    if selectedTab == 0 {
+                        HomeDashboardView(
+                            workoutViewModel: workoutViewModel,
+                            mealViewModel: mealViewModel,
+                            progressViewModel: progressViewModel,
+                            coachChatViewModel: coachChatViewModel
+                        )
+                    } else if selectedTab == 1 {
+                        WorkoutsView(viewModel: workoutViewModel)
+                    } else if selectedTab == 2 {
+                        MealsView(viewModel: mealViewModel)
+                    } else {
+                        BodyProgressView(viewModel: progressViewModel)
+                    }
+                }
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            CustomBottomBar(selectedTab: $selectedTab)
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+                .padding(.bottom, 10)
+                .background(Color.clear)
         }
     }
     

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AuthView: View {
-    @StateObject private var authService = AuthService()
+    @ObservedObject var authService: AuthService
     @State private var email = ""
     @State private var password = ""
     @State private var isSignUp = false
@@ -100,7 +100,7 @@ struct AuthView: View {
             }
         }
         .fullScreenCover(isPresented: $authService.isAuthenticated) {
-            ContentView()
+            ContentView(authService: authService)
         }
     }
 }
