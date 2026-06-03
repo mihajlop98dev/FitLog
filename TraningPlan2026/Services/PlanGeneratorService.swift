@@ -15,14 +15,14 @@ struct GeneratedExercise: Codable {
 class PlanGeneratorService {
     static func generatePlan(
         profile: UserProfileData,
-        templateExercises: [String]
+        templateExercises: [String],
+        templateWorkouts: [[String]] = []
     ) async -> [GeneratedWorkout] {
         guard let apiKey = AppSecrets.deepSeekAPIKey else {
-            print("DeepSeek API key not configured")
             return generateFallbackPlan(profile: profile, templateExercises: templateExercises)
         }
         
-        let prompt = buildPrompt(profile: profile, templateExercises: templateExercises)
+        let prompt = buildPrompt(profile: profile, templateExercises: templateExercises, templateWorkouts: templateWorkouts)
         
         var request = URLRequest(url: URL(string: "https://api.deepseek.com/chat/completions")!)
         request.httpMethod = "POST"
@@ -32,7 +32,21 @@ class PlanGeneratorService {
         let body: [String: Any] = [
             "model": "deepseek-chat",
             "messages": [
-                ["role": "system", "content": "You are a fitness coach. Create a personalized workout plan in Serbian language. Return ONLY valid JSON array, no markdown."],
+                ["role": "system", "content": """
+                Ti si vrhunski fitness coach. Pravis personalizovane planove treninga.
+                
+                PRAVILA:
+                1. Napravi TACNO [days_per_week] treninga
+                2. SVAKI trening MORA da ima 5-8 vezbi
+                3. Ne ponavljaj istu vezbu u razlicitim treninzima iste nedelje
+                4. Prilagodi cilju korisnika
+                5. Prilagodi nivou korisnika
+                6. Postuj opremu koju korisnik ima
+                7. Izbegavaj vezbe koje konfliktiraju sa povredama
+                8. Strukturiraj treninge logicki (push/pull/legs ili gornji/donji ili full body)
+                9. Imenuj svaki trening opisno na srpskom
+                10. Vrati SAMO validan JSON, bez markdown-a
+                """],
                 ["role": "user", "content": prompt]
             ],
             "response_format": ["type": "json_object"],
@@ -51,10 +65,15 @@ class PlanGeneratorService {
                let contentData = content.data(using: .utf8) {
                 let decoder = JSONDecoder()
                 if let response = try? decoder.decode([String: [GeneratedWorkout]].self, from: contentData) {
-                    return response["workouts"] ?? []
+                    let workouts = response["workouts"] ?? []
+                    if validateWorkouts(workouts, expectedCount: profile.days_per_week) {
+                        return workouts
+                    }
                 }
                 if let workouts = try? decoder.decode([GeneratedWorkout].self, from: contentData) {
-                    return workouts
+                    if validateWorkouts(workouts, expectedCount: profile.days_per_week) {
+                        return workouts
+                    }
                 }
             }
         } catch {
@@ -64,7 +83,15 @@ class PlanGeneratorService {
         return generateFallbackPlan(profile: profile, templateExercises: templateExercises)
     }
     
-    private static func buildPrompt(profile: UserProfileData, templateExercises: [String]) -> String {
+    private static func validateWorkouts(_ workouts: [GeneratedWorkout], expectedCount: Int) -> Bool {
+        guard workouts.count == expectedCount else { return false }
+        for w in workouts {
+            guard w.exercises.count >= 5 && w.exercises.count <= 8 else { return false }
+        }
+        return true
+    }
+    
+    private static func buildPrompt(profile: UserProfileData, templateExercises: [String], templateWorkouts: [[String]]) -> String {
         let injuryText: String
         if let injuries = profile.injuries, !injuries.isEmpty {
             injuryText = "Izbegavaj vezbe koje opterecuju: \(injuries.joined(separator: ", "))."
@@ -72,56 +99,118 @@ class PlanGeneratorService {
             injuryText = "Nema povreda."
         }
         
-        let nutritionText = profile.has_nutrition ? "Korisnik zeli i plan ishrane." : "Bez plana ishrane."
+        let templateExamples: String
+        if !templateWorkouts.isEmpty {
+            let examples = templateWorkouts.shuffled().prefix(3).map { workout in
+                "- \(workout.joined(separator: ", "))"
+            }.joined(separator: "\n")
+            templateExamples = "Primeri strukture iz nase baze (jedan trening = 5-8 vezbi):\n\(examples)"
+        } else {
+            templateExamples = ""
+        }
         
         return """
-        Napravi plan treninga za korisnika sa sledecim profilom:
+        Napravi plan treninga za korisnika:
         
         Cilj: \(profile.goal)
         Nivo: \(profile.level)
         Treninga nedeljno: \(profile.days_per_week)
         Oprema: \(profile.equipment.joined(separator: ", "))
         \(injuryText)
-        \(nutritionText)
         
-        Dostupne vezbe iz kataloga (izaberi 5-8 po treningu odgovarajuce):
+        \(templateExamples)
+        
+        Dostupne vezbe:
         \(templateExercises.joined(separator: ", "))
         
-        Vrati JSON u formatu:
-        {"workouts": [{"name": "Naziv treninga", "day": 1, "exercises": [{"name": "Naziv vezbe", "sets": 3, "reps": 10}]}]}
+        Vazi: SVAKI trening MORA da ima 5-8 vezbi. Ne manje od 5.
         
-        Ukupno \(profile.days_per_week) treninga. Prilagodi broj serija i ponavljanja nivou (\(profile.level)).
+        Vrati JSON:
+        {"workouts": [{"name": "Naziv treninga", "day": 1, "exercises": [{"name": "Naziv vezbe", "sets": 3, "reps": 10}]}]}
         """
     }
     
     private static func generateFallbackPlan(profile: UserProfileData, templateExercises: [String]) -> [GeneratedWorkout] {
-        let workoutNames = ["Gornji deo tela", "Donji deo tela", "Gornji + kardio", "Donji + core", "Pun telo", "Gornji deo", "Donji deo"]
-        var plans: [GeneratedWorkout] = []
+        let pushExercises = templateExercises.filter { n in
+            let lower = n.lowercased()
+            return lower.contains("bench") || lower.contains("pres") || lower.contains("sklek") || lower.contains("triceps") || lower.contains("dips") || lower.contains("biceps") || lower.contains("curl")
+        }
+        let pullExercises = templateExercises.filter { n in
+            let lower = n.lowercased()
+            return lower.contains("pull") || lower.contains("zgib") || lower.contains("vesl") || lower.contains("face") || lower.contains("ledj")
+        }
+        let legsExercises = templateExercises.filter { n in
+            let lower = n.lowercased()
+            return lower.contains("cucanj") || lower.contains("squat") || lower.contains("leg") || lower.contains("iskor") || lower.contains("noga") || lower.contains("lunges") || lower.contains("deadlift") || lower.contains("press")
+        }
+        let shouldersExercises = templateExercises.filter { n in
+            let lower = n.lowercased()
+            return lower.contains("shoulder") || lower.contains("lateral") || lower.contains("rame") || lower.contains("arnold")
+        }
+        let coreExercises = templateExercises.filter { n in
+            let lower = n.lowercased()
+            return lower.contains("plank") || lower.contains("trbus") || lower.contains("crun") || lower.contains("core") || lower.contains("leg raise") || lower.contains("russian")
+        }
         
-        let exercises = templateExercises.isEmpty
-            ? ["Sklekovi", "Cucnjevi", "Zgibovi", "Iskoraci", "Plank", "Trbusnjaci", "Propadanja"]
-            : templateExercises.shuffled()
+        let all = templateExercises.isEmpty
+            ? ["Bench Press", "Pull Ups", "Squat", "Shoulder Press", "Plank", "Bicep Curl", "Triceps Dip", "Leg Press", "Deadlift", "Lateral Raise", "Row", "Cable Fly", "Face Pull", "Lunges", "Calf Raise"]
+            : templateExercises
         
-        let count = max(exercises.count, 1)
+        let push = pushExercises.isEmpty ? all.filter { _ in true } : pushExercises
+        let pull = pullExercises.isEmpty ? all.filter { _ in true } : pullExercises
+        let legs = legsExercises.isEmpty ? all.filter { _ in true } : legsExercises
+        let shoulders = shouldersExercises.isEmpty ? all.filter { _ in true } : shouldersExercises
+        let core = coreExercises.isEmpty ? all.filter { _ in true } : coreExercises
         
-        for day in 1...profile.days_per_week {
-            let startIdx = ((day - 1) * 6) % count
-            let endIdx = min(startIdx + 6, count)
-            let dayExercises = Array(exercises[startIdx..<endIdx])
-            
-            let exercises = dayExercises.map { name in
+        let pick: ([String], Int) -> [GeneratedExercise] = { pool, count in
+            pool.shuffled().prefix(count).map { name in
                 GeneratedExercise(
                     name: name,
                     sets: profile.level == "pocetnik" ? 3 : (profile.level == "napredan" ? 4 : 3),
-                    reps: profile.level == "pocetnik" ? 10 : (profile.level == "napredan" ? 12 : 10)
+                    reps: profile.goal == "mrsavljenje" ? 12 : (profile.goal == "definicija" ? 15 : 10)
                 )
             }
-            
-            plans.append(GeneratedWorkout(
-                name: workoutNames[(day - 1) % workoutNames.count],
-                day: day,
-                exercises: exercises
-            ))
+        }
+        
+        func pushWorkout(_ day: Int) -> GeneratedWorkout {
+            GeneratedWorkout(name: "Gornji deo - Potisak", day: day, exercises: pick(push, 4) + pick(shoulders, 2) + pick(core, 1))
+        }
+        func pullWorkout(_ day: Int) -> GeneratedWorkout {
+            GeneratedWorkout(name: "Gornji deo - Vucenje", day: day, exercises: pick(pull, 4) + pick(shoulders, 2) + pick(core, 1))
+        }
+        func legsWorkout(_ day: Int) -> GeneratedWorkout {
+            GeneratedWorkout(name: "Donji deo", day: day, exercises: pick(legs, 5) + pick(core, 1))
+        }
+        func upperWorkout(_ day: Int) -> GeneratedWorkout {
+            GeneratedWorkout(name: "Gornji deo tela", day: day, exercises: pick(push, 3) + pick(pull, 2) + pick(shoulders, 1) + pick(core, 1))
+        }
+        func lowerWorkout(_ day: Int) -> GeneratedWorkout {
+            GeneratedWorkout(name: "Donji deo tela", day: day, exercises: pick(legs, 5) + pick(core, 2))
+        }
+        func fullBody(_ day: Int) -> GeneratedWorkout {
+            GeneratedWorkout(name: "Pun telo", day: day, exercises: pick(push, 2) + pick(pull, 2) + pick(legs, 2) + pick(shoulders, 1) + pick(core, 1))
+        }
+        
+        var plans: [GeneratedWorkout] = []
+        let schedule: [Int: GeneratedWorkout]
+        
+        switch profile.days_per_week {
+        case 2:
+            schedule = [1: upperWorkout(1), 2: lowerWorkout(2)]
+        case 3:
+            schedule = [1: pushWorkout(1), 2: pullWorkout(2), 3: legsWorkout(3)]
+        case 4:
+            schedule = [1: upperWorkout(1), 2: lowerWorkout(2), 3: pushWorkout(3), 4: pullWorkout(4)]
+        case 5:
+            schedule = [1: pushWorkout(1), 2: pullWorkout(2), 3: legsWorkout(3), 4: upperWorkout(4), 5: lowerWorkout(5)]
+        case 6:
+            schedule = [1: pushWorkout(1), 2: pullWorkout(2), 3: legsWorkout(3), 4: upperWorkout(4), 5: lowerWorkout(5), 6: fullBody(6)]
+        default:
+            schedule = [1: fullBody(1)]
+        }
+        
+        for day in 1...profile.days_per_week {
+            plans.append(schedule[day] ?? fullBody(day))
         }
         
         return plans

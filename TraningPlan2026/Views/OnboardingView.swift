@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     let userId: String
     let featureGate: FeatureGateService
+    @Binding var onboardingComplete: Bool
     @State private var step = 0
     @State private var name = ""
     @State private var age = ""
@@ -322,7 +323,7 @@ struct OnboardingView: View {
             }
             
             Button {
-                
+                onboardingComplete = false
             } label: {
                 Text("➤ Započni trening")
                     .fontWeight(.semibold)

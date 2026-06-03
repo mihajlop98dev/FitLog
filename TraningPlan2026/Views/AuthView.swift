@@ -106,7 +106,7 @@ struct AuthView: View {
         }
         .fullScreenCover(isPresented: $authService.isAuthenticated) {
             if needsOnboarding, let userId = authService.userId {
-                OnboardingView(userId: userId, featureGate: featureGate)
+                OnboardingView(userId: userId, featureGate: featureGate, onboardingComplete: $needsOnboarding)
             } else {
                 ContentView(authService: authService, featureGate: featureGate)
             }
