@@ -7,12 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		886AAEF32F4E309300AC84D1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAEF22F4E309300AC84D1 /* FirebaseAuth */; };
-		886AAEF52F4E309300AC84D1 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAEF42F4E309300AC84D1 /* FirebaseCore */; };
-		886AAEF72F4E309300AC84D1 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAEF62F4E309300AC84D1 /* FirebaseDatabase */; };
-		886AAEF92F4E309300AC84D1 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAEF82F4E309300AC84D1 /* FirebaseFirestore */; };
-		886AAEFB2F4E309300AC84D1 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAEFA2F4E309300AC84D1 /* FirebaseFunctions */; };
-		886AAEFD2F4E309300AC84D1 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAEFC2F4E309300AC84D1 /* FirebaseStorage */; };
 		886AAF2D2F4F1F3300AC84D1 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAF2C2F4F1F3300AC84D1 /* Realtime */; };
 		886AAF2F2F4F1F3300AC84D1 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 886AAF2E2F4F1F3300AC84D1 /* Supabase */; };
 /* End PBXBuildFile section */
@@ -49,13 +43,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				886AAF2D2F4F1F3300AC84D1 /* Realtime in Frameworks */,
-				886AAEF72F4E309300AC84D1 /* FirebaseDatabase in Frameworks */,
-				886AAEF92F4E309300AC84D1 /* FirebaseFirestore in Frameworks */,
-				886AAEFB2F4E309300AC84D1 /* FirebaseFunctions in Frameworks */,
 				886AAF2F2F4F1F3300AC84D1 /* Supabase in Frameworks */,
-				886AAEF52F4E309300AC84D1 /* FirebaseCore in Frameworks */,
-				886AAEF32F4E309300AC84D1 /* FirebaseAuth in Frameworks */,
-				886AAEFD2F4E309300AC84D1 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,12 +95,6 @@
 			);
 			name = TraningPlan2026;
 			packageProductDependencies = (
-				886AAEF22F4E309300AC84D1 /* FirebaseAuth */,
-				886AAEF42F4E309300AC84D1 /* FirebaseCore */,
-				886AAEF62F4E309300AC84D1 /* FirebaseDatabase */,
-				886AAEF82F4E309300AC84D1 /* FirebaseFirestore */,
-				886AAEFA2F4E309300AC84D1 /* FirebaseFunctions */,
-				886AAEFC2F4E309300AC84D1 /* FirebaseStorage */,
 				886AAF2C2F4F1F3300AC84D1 /* Realtime */,
 				886AAF2E2F4F1F3300AC84D1 /* Supabase */,
 			);
@@ -145,7 +127,6 @@
 			mainGroup = 883856B12F4E229C004ABBB0;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				886AAF2B2F4F1F3300AC84D1 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -411,36 +392,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		886AAEF22F4E309300AC84D1 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		886AAEF42F4E309300AC84D1 /* FirebaseCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
-		};
-		886AAEF62F4E309300AC84D1 /* FirebaseDatabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseDatabase;
-		};
-		886AAEF82F4E309300AC84D1 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
-		886AAEFA2F4E309300AC84D1 /* FirebaseFunctions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFunctions;
-		};
-		886AAEFC2F4E309300AC84D1 /* FirebaseStorage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 886AAEF12F4E309300AC84D1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
-		};
 		886AAF2C2F4F1F3300AC84D1 /* Realtime */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 886AAF2B2F4F1F3300AC84D1 /* XCRemoteSwiftPackageReference "supabase-swift" */;
