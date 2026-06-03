@@ -9,8 +9,9 @@ import SwiftUI
 
 struct ContentView: View {
     let authService: AuthService
+    let featureGate: FeatureGateService
     
     var body: some View {
-        HomeView(authService: authService)
+        HomeView(authService: authService, featureGate: featureGate)
     }
 }

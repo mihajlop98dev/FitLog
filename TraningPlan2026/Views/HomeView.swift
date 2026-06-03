@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     let authService: AuthService
+    let featureGate: FeatureGateService
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var workoutViewModel = WorkoutViewModel()
     @StateObject private var mealViewModel = MealViewModel()

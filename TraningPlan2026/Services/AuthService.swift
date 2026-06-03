@@ -9,6 +9,7 @@ class AuthService: ObservableObject {
     @Published var isAuthenticated = false
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var userId: String?
     
     private let supabase = SupabaseConfig.shared.supabase
     
@@ -19,8 +20,9 @@ class AuthService: ObservableObject {
     func checkExistingSession() async {
         do {
             let session = try await supabase.auth.session
-            if session.accessToken != nil, session.user != nil {
+            if session.accessToken != nil {
                 isAuthenticated = true
+                userId = session.user.id.uuidString
             }
         } catch {
             tryBiometricLogin()
@@ -31,7 +33,8 @@ class AuthService: ObservableObject {
         isLoading = true
         errorMessage = nil
         do {
-            try await supabase.auth.signUp(email: email, password: password)
+            let result = try await supabase.auth.signUp(email: email, password: password)
+            userId = result.user.id.uuidString
             isAuthenticated = true
         } catch {
             errorMessage = error.localizedDescription
@@ -43,7 +46,8 @@ class AuthService: ObservableObject {
         isLoading = true
         errorMessage = nil
         do {
-            try await supabase.auth.signIn(email: email, password: password)
+            let session = try await supabase.auth.signIn(email: email, password: password)
+            userId = session.user.id.uuidString
             isAuthenticated = true
             saveCredentials(email: email, password: password)
         } catch {

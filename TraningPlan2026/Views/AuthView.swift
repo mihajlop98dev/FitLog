@@ -5,6 +5,8 @@ struct AuthView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isSignUp = false
+    @State private var needsOnboarding = false
+    @State private var featureGate = FeatureGateService()
     
     var body: some View {
         ZStack {
@@ -57,6 +59,9 @@ struct AuthView: View {
                         } else {
                             await authService.signIn(email: email, password: password)
                         }
+                        if authService.isAuthenticated {
+                            await checkOnboardingStatus()
+                        }
                     }
                 } label: {
                     HStack {
@@ -100,7 +105,17 @@ struct AuthView: View {
             }
         }
         .fullScreenCover(isPresented: $authService.isAuthenticated) {
-            ContentView(authService: authService)
+            if needsOnboarding, let userId = authService.userId {
+                OnboardingView(userId: userId, featureGate: featureGate)
+            } else {
+                ContentView(authService: authService, featureGate: featureGate)
+            }
         }
+    }
+    
+    private func checkOnboardingStatus() async {
+        guard let userId = authService.userId else { return }
+        await featureGate.loadProfile(userId: userId)
+        needsOnboarding = featureGate.profile == nil
     }
 }
